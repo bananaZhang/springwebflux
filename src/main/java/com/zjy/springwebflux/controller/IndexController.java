@@ -4,6 +4,7 @@ import com.zjy.springwebflux.bean.Sir;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +35,26 @@ public class IndexController {
     @RequestMapping("/hello/{who}")
     public Mono<String> hello(@PathVariable String who) {
         return Mono.just(who).map(w -> "Hello " + w + "!");
+    }
+
+    @RequestMapping("/test")
+    public Mono<String> test() {
+        Flux.just("tom")
+                .map(s -> {
+                    System.out.println("[map] Thread name: " + Thread.currentThread().getName());
+                    return s.concat("@mail.com");
+                })
+                .publishOn(Schedulers.newElastic("thread-publishOn"))
+                .filter(s -> {
+                    System.out.println("[filter] Thread name: " + Thread.currentThread().getName());
+                    return s.startsWith("t");
+                })
+                .subscribeOn(Schedulers.newElastic("thread-subscribeOn"))
+                .subscribe(s -> {
+                    System.out.println("[subscribe] Thread name: " + Thread.currentThread().getName());
+                    System.out.println(s);
+                });
+        return Mono.just("ok");
     }
 
     private String createStr() {

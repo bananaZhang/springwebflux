@@ -13,6 +13,7 @@ import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -39,7 +40,9 @@ public class JwtFilter implements WebFilter {
         String token = request.getHeaders().getFirst("token");// header中取出token
         if (StringUtils.isBlank(token)) {
             log.error("token is blank");
-            return Mono.empty();
+//            return Mono.empty();
+            ServerHttpResponse response = serverWebExchange.getResponse();
+            return response.writeWith(Mono.just(response.bufferFactory().wrap("\"msg\":{\"no token\"}".getBytes())));
         }
         ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(request) {
             @Override

@@ -18,6 +18,7 @@ public class RoutingConfiguration {
      */
     @Bean
     public RouterFunction<ServerResponse> router(TestHandler testHandler) {
+        // test的请求由testHandler的getData方法处理
         return route(GET("/test").and(accept(MediaType.APPLICATION_JSON)), testHandler::getData);
     }
 

@@ -42,8 +42,10 @@ public class EncryptionFilter implements WebFilter {
         ServerHttpRequest request = serverWebExchange.getRequest();
         ServerHttpResponse response = serverWebExchange.getResponse();
         DataBufferFactory bufferFactory = serverWebExchange.getResponse().bufferFactory();
+
         ServerHttpRequestDecorator requestDecorator = processRequest(request, bufferFactory);
         ServerHttpResponseDecorator responseDecorator = processResponse(response, bufferFactory);
+
         return webFilterChain.filter(serverWebExchange.mutate().request(requestDecorator)
                 .response(responseDecorator).build());
     }
@@ -100,6 +102,7 @@ public class EncryptionFilter implements WebFilter {
                 if (body instanceof Flux) {
                     Flux<? extends DataBuffer> flux = (Flux<? extends DataBuffer>) body;
                     return super.writeWith(flux.map(buffer -> {
+                        // buffer为原始响应数据的缓冲区
                         CharBuffer charBuffer = StandardCharsets.UTF_8.decode(buffer.asByteBuffer());
                         DataBufferUtils.release(buffer);
                         JsonNode jsonNode = readNode(charBuffer.toString());
@@ -108,6 +111,7 @@ public class EncryptionFilter implements WebFilter {
                         String content = AesUtils.X.encrypt(text);
                         log.info("修改响应体payload,修改前:{},修改后:{}", text, content);
                         setPayloadTextNode(content, jsonNode);
+                        // 返回新的响应数据的缓冲区
                         return bufferFactory.wrap(jsonNode.toString().getBytes(StandardCharsets.UTF_8));
                     }));
                 }

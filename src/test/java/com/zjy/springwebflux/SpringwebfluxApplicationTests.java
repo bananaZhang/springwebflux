@@ -18,4 +18,13 @@ class SpringwebfluxApplicationTests {
                 .log()
                 .blockLast();
     }
+
+    @Test
+    public void test2() {
+        Flux.concat(
+                Flux.range(1, 3),
+                Flux.range(4, 2),
+                Flux.range(6, 5)
+        ).subscribe(System.out::println);
+    }
 }
